@@ -41,11 +41,12 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 uint8_t RxBuffer[1];
 uint8_t TxBuffer[400];
-enum{menuhold,ledc,btns,reload} state = menuhold;
+enum{menuhold,ledc,btns} state = menuhold;
 int freq = 0;
 int led = 1;
 /* USER CODE END PV */
@@ -53,6 +54,7 @@ int led = 1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void Menu();
@@ -93,6 +95,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   UARTInterruptConfig();
@@ -105,7 +108,7 @@ int main(void)
 			"Please select the function above...\r\n"
 			"====================================\r\n"
 			"\r\n");
-  HAL_UART_Transmit(&huart2, TxBuffer, strlen((char*)TxBuffer),200);
+  HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -115,6 +118,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_0);
 	  if(led == 1) LEDTask();
 	  else HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin,0);
   }
@@ -201,6 +205,22 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -243,7 +263,7 @@ void LEDTask()
 	static uint32_t timestamp = 0;
 	if(HAL_GetTick() >= timestamp)
 	{
-		timestamp = HAL_GetTick()+freq;
+		timestamp = HAL_GetTick()+(1000/(freq*2));
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 	}
 }
@@ -272,12 +292,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		if(state == btns && HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
 		{
 			sprintf((char*)TxBuffer,"You just press the button\r\n");
-			HAL_UART_Transmit(&huart2, TxBuffer, strlen((char*)TxBuffer),20);
+			HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 		}
 		else if (state == btns && HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) != GPIO_PIN_RESET)
 		{
 			sprintf((char*)TxBuffer,"You just release the button\r\n");
-			HAL_UART_Transmit(&huart2, TxBuffer, strlen((char*)TxBuffer),20);
+			HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 		}
 	}
 }
@@ -301,10 +321,10 @@ void Menu()
 						"Please select the function above...\r\n"
 						"====================================\r\n"
 						"\r\n");
-					HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+					HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					state = ledc;
 				}
-				if(RxBuffer[0] == '1')
+				else if(RxBuffer[0] == '1')
 				{
 					sprintf((char*)TxBuffer,
 						"You selected --> 1 : Button Status\r\n"
@@ -315,16 +335,14 @@ void Menu()
 						"->Button Status will show when you press it and unpress it<-\r\n"
 						"====================================\r\n"
 						"\r\n");
-					HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+					HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					state = btns;
 				}
 				else
 				{
-					if(RxBuffer[0] != '0')
-					{
-						sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
-						HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
-					}
+
+					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+					HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 				}
 			break;
 
@@ -334,10 +352,8 @@ void Menu()
 					if(led == 0)
 					{
 						sprintf((char*)TxBuffer,
-								"\r\n"
-								"Please turn on your LED first\r\n"
-								"\r\n");
-						HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+								"Please turn on your LED first\r\n");
+						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 					else
 					{
@@ -345,28 +361,25 @@ void Menu()
 						sprintf((char*)TxBuffer,
 								"Speed Up +1 Hz\r\n"
 								"Current Speed : %d Hz\r\n",freq);
-						HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 				}
-				if(RxBuffer[0] == 's')
+				else if(RxBuffer[0] == 's')
 				{
 					if(led == 0)
 					{
-						sprintf((char*)TxBuffer,
-								"\r\n"
-								"Please turn on your LED first\r\n"
-								"\r\n");
-						HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+						sprintf((char*)TxBuffer,"Please turn on your LED first\r\n");
+						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 					else
 					{
-					if(freq > 0)
+						if(freq > 0)
 						{
 							freq--;
 							sprintf((char*)TxBuffer,
 									"Speed Up -1 Hz\r\n"
 									"Current Speed : %d Hz\r\n",freq);
-							HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+							HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 						}
 						else
 						{
@@ -374,26 +387,26 @@ void Menu()
 							sprintf((char*)TxBuffer,
 									"Frequency cannot be less than 0\r\n"
 									"Current Speed : %d Hz\r\n",freq);
-							HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+							HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 						}
 					}
 				}
-				if(RxBuffer[0] == 'd')
+				else if(RxBuffer[0] == 'd')
 				{
 					if(led == 0)
 					{
 						led = 1;
 						sprintf((char*)TxBuffer,"LED On\r\n");
-						HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 					else
 					{
 						led = 0;
 						sprintf((char*)TxBuffer,"LED Off\r\n");
-						HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 				}
-				if(RxBuffer[0] == 'x')
+				else if(RxBuffer[0] == 'x')
 				{
 					sprintf((char*)TxBuffer,
 							"====================================\r\n"
@@ -402,17 +415,14 @@ void Menu()
 							"1 : Button Status\r\n"
 							"Please select the function above...\r\n"
 							"====================================\r\n"
-								"\r\n");
-					HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+							"\r\n");
+					HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					state = menuhold;
 				}
 				else
 				{
-					if(RxBuffer[0] != 'a' && RxBuffer[0] != 's' && RxBuffer[0] != 'd')
-					{
-						sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
-						HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
-					}
+					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+					HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 				}
 			break;
 
@@ -427,16 +437,13 @@ void Menu()
 						"Please select the function above...\r\n"
 						"====================================\r\n"
 							"\r\n");
-				HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
+				HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 				state = menuhold;
 			}
 			else
 			{
-				if(RxBuffer[0] != '0')
-				{
-					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
-					HAL_UART_Transmit_IT(&huart2, TxBuffer, strlen((char*)TxBuffer));
-				}
+				sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+				HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 			}
 			break;
 	}
