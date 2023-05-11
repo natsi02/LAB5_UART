@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+//Natchanon 17
 #include "stdio.h"
 #include "string.h"
 /* USER CODE END Includes */
@@ -101,10 +102,12 @@ int main(void)
   UARTInterruptConfig();
   sprintf((char*)TxBuffer,
 		  	"\r\n"
+		  	"\r\n"
+		  	"\r\n"
 			"====================================\r\n"
 			"--------[F411RE Controller]--------\r\n"
-			"0 : LED Control\r\n"
-			"1 : Button Status\r\n"
+			"Button 0 : LED Control\r\n"
+			"Button 1 : Button Status\r\n"
 			"Please select the function above...\r\n"
 			"====================================\r\n"
 			"\r\n");
@@ -280,7 +283,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		RxBuffer[1] = '\0';
 		Menu();
 		HAL_UART_Receive_IT(&huart2, RxBuffer, 1);
-
 	}
 
 }
@@ -314,10 +316,10 @@ void Menu()
 						"\r\n"
 						"====================================\r\n"
 						"[LED Control Menu]\r\n"
-						"a : Speed Up +1 Hz\r\n"
-						"s : Speed Down -1 Hz\r\n"
-						"d : On/Off\r\n"
-						"x : back\r\n"
+						"Button a : Speed Up +1 Hz\r\n"
+						"Button s : Speed Down -1 Hz\r\n"
+						"Button d : On/Off\r\n"
+						"Button x : back\r\n"
 						"Please select the function above...\r\n"
 						"====================================\r\n"
 						"\r\n");
@@ -331,7 +333,7 @@ void Menu()
 						"\r\n"
 						"====================================\r\n"
 						"[Check Button Status]\r\n"
-						"x : back\r\n"
+						"Button x : back\r\n"
 						"->Button Status will show when you press it and unpress it<-\r\n"
 						"====================================\r\n"
 						"\r\n");
@@ -341,7 +343,7 @@ void Menu()
 				else
 				{
 
-					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n\r\n",RxBuffer);
 					HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 				}
 			break;
@@ -352,7 +354,7 @@ void Menu()
 					if(led == 0)
 					{
 						sprintf((char*)TxBuffer,
-								"Please turn on your LED first\r\n");
+								"Please turn on your LED first\r\n\r\n");
 						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 					else
@@ -360,7 +362,8 @@ void Menu()
 						freq++;
 						sprintf((char*)TxBuffer,
 								"Speed Up +1 Hz\r\n"
-								"Current Speed : %d Hz\r\n",freq);
+								"Current Speed : %d Hz\r\n"
+								"\r\n",freq);
 						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 				}
@@ -368,7 +371,7 @@ void Menu()
 				{
 					if(led == 0)
 					{
-						sprintf((char*)TxBuffer,"Please turn on your LED first\r\n");
+						sprintf((char*)TxBuffer,"Please turn on your LED first\r\n\r\n");
 						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 					else
@@ -378,7 +381,8 @@ void Menu()
 							freq--;
 							sprintf((char*)TxBuffer,
 									"Speed Up -1 Hz\r\n"
-									"Current Speed : %d Hz\r\n",freq);
+									"Current Speed : %d Hz\r\n"
+									"\r\n",freq);
 							HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 						}
 						else
@@ -386,7 +390,8 @@ void Menu()
 							freq = 0;
 							sprintf((char*)TxBuffer,
 									"Frequency cannot be less than 0\r\n"
-									"Current Speed : %d Hz\r\n",freq);
+									"Current Speed : %d Hz\r\n"
+									"\r\n",freq);
 							HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 						}
 					}
@@ -396,13 +401,13 @@ void Menu()
 					if(led == 0)
 					{
 						led = 1;
-						sprintf((char*)TxBuffer,"LED On\r\n");
+						sprintf((char*)TxBuffer,"LED On\r\n\r\n");
 						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 					else
 					{
 						led = 0;
-						sprintf((char*)TxBuffer,"LED Off\r\n");
+						sprintf((char*)TxBuffer,"LED Off\r\n\r\n");
 						HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 					}
 				}
@@ -411,8 +416,8 @@ void Menu()
 					sprintf((char*)TxBuffer,
 							"====================================\r\n"
 							"--------[F411RE Controller]--------\r\n"
-							"0 : LED Control\r\n"
-							"1 : Button Status\r\n"
+							"Button 0 : LED Control\r\n"
+							"Button 1 : Button Status\r\n"
 							"Please select the function above...\r\n"
 							"====================================\r\n"
 							"\r\n");
@@ -421,7 +426,7 @@ void Menu()
 				}
 				else
 				{
-					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n\r\n",RxBuffer);
 					HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 				}
 			break;
@@ -432,17 +437,17 @@ void Menu()
 				sprintf((char*)TxBuffer,
 						"====================================\r\n"
 						"--------[F411RE Controller]--------\r\n"
-						"0 : LED Control\r\n"
-						"1 : Button Status\r\n"
+						"Button 0 : LED Control\r\n"
+						"Button 1 : Button Status\r\n"
 						"Please select the function above...\r\n"
 						"====================================\r\n"
-							"\r\n");
+						"\r\n");
 				HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 				state = menuhold;
 			}
 			else
 			{
-				sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+				sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n\r\n",RxBuffer);
 				HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 			}
 			break;

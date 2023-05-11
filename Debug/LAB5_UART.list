@@ -7,23 +7,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         0000406c  080001a0  080001a0  000101a0  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       000004c4  0800420c  0800420c  0001420c  2**2
+  2 .rodata       00000514  0800420c  0800420c  0001420c  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  080046d0  080046d0  00020074  2**0
+  3 .ARM.extab    00000000  08004720  08004720  00020074  2**0
                   CONTENTS
-  4 .ARM          00000008  080046d0  080046d0  000146d0  2**2
+  4 .ARM          00000008  08004720  08004720  00014720  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  5 .preinit_array 00000000  080046d8  080046d8  00020074  2**0
+  5 .preinit_array 00000000  08004728  08004728  00020074  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  080046d8  080046d8  000146d8  2**2
+  6 .init_array   00000004  08004728  08004728  00014728  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  7 .fini_array   00000004  080046dc  080046dc  000146dc  2**2
+  7 .fini_array   00000004  0800472c  0800472c  0001472c  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  8 .data         00000074  20000000  080046e0  00020000  2**2
+  8 .data         00000074  20000000  08004730  00020000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          00000278  20000074  08004754  00020074  2**2
+  9 .bss          00000278  20000074  080047a4  00020074  2**2
                   ALLOC
- 10 ._user_heap_stack 00000604  200002ec  08004754  000202ec  2**0
+ 10 ._user_heap_stack 00000604  200002ec  080047a4  000202ec  2**0
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  00020074  2**0
                   CONTENTS, READONLY
@@ -37,11 +37,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_macro  00015967  00000000  00000000  0002b210  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00008d48  00000000  00000000  00040b77  2**0
+ 17 .debug_line   00008d49  00000000  00000000  00040b77  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    00085dc0  00000000  00000000  000498bf  2**0
+ 18 .debug_str    00085dc0  00000000  00000000  000498c0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  000cf67f  2**0
+ 19 .comment      00000050  00000000  00000000  000cf680  2**0
                   CONTENTS, READONLY
  20 .debug_frame  00001f50  00000000  00000000  000cf6d0  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -460,8 +460,8 @@ int main(void)
  80005b0:	490f      	ldr	r1, [pc, #60]	; (80005f0 <main+0x5c>)
  80005b2:	4810      	ldr	r0, [pc, #64]	; (80005f4 <main+0x60>)
  80005b4:	f003 f9b0 	bl	8003918 <siprintf>
-			"0 : LED Control\r\n"
-			"1 : Button Status\r\n"
+			"Button 0 : LED Control\r\n"
+			"Button 1 : Button Status\r\n"
 			"Please select the function above...\r\n"
 			"====================================\r\n"
 			"\r\n");
@@ -1056,10 +1056,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  800096e:	bd80      	pop	{r7, pc}
  8000970:	200002c8 	.word	0x200002c8
  8000974:	40020800 	.word	0x40020800
- 8000978:	080042cc 	.word	0x080042cc
+ 8000978:	080042e0 	.word	0x080042e0
  800097c:	20000138 	.word	0x20000138
  8000980:	20000090 	.word	0x20000090
- 8000984:	080042e8 	.word	0x080042e8
+ 8000984:	080042fc 	.word	0x080042fc
 
 08000988 <Menu>:
 
@@ -1078,7 +1078,7 @@ void Menu()
  800099e:	d002      	beq.n	80009a6 <Menu+0x1e>
  80009a0:	2b01      	cmp	r3, #1
  80009a2:	d03c      	beq.n	8000a1e <Menu+0x96>
-				sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+				sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n\r\n",RxBuffer);
 				HAL_UART_Transmit_DMA(&huart2, TxBuffer, strlen((char*)TxBuffer));
 			}
 			break;
@@ -1133,7 +1133,7 @@ void Menu()
  80009fa:	701a      	strb	r2, [r3, #0]
 			break;
  80009fc:	e0fc      	b.n	8000bf8 <Menu+0x270>
-					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n\r\n",RxBuffer);
  80009fe:	4a80      	ldr	r2, [pc, #512]	; (8000c00 <Menu+0x278>)
  8000a00:	4984      	ldr	r1, [pc, #528]	; (8000c14 <Menu+0x28c>)
  8000a02:	4881      	ldr	r0, [pc, #516]	; (8000c08 <Menu+0x280>)
@@ -1208,7 +1208,7 @@ void Menu()
  8000a84:	681b      	ldr	r3, [r3, #0]
  8000a86:	2b00      	cmp	r3, #0
  8000a88:	d10e      	bne.n	8000aa8 <Menu+0x120>
-						sprintf((char*)TxBuffer,"Please turn on your LED first\r\n");
+						sprintf((char*)TxBuffer,"Please turn on your LED first\r\n\r\n");
  8000a8a:	4964      	ldr	r1, [pc, #400]	; (8000c1c <Menu+0x294>)
  8000a8c:	485e      	ldr	r0, [pc, #376]	; (8000c08 <Menu+0x280>)
  8000a8e:	f002 ff43 	bl	8003918 <siprintf>
@@ -1288,7 +1288,7 @@ void Menu()
  8000b18:	4b3f      	ldr	r3, [pc, #252]	; (8000c18 <Menu+0x290>)
  8000b1a:	2201      	movs	r2, #1
  8000b1c:	601a      	str	r2, [r3, #0]
-						sprintf((char*)TxBuffer,"LED On\r\n");
+						sprintf((char*)TxBuffer,"LED On\r\n\r\n");
  8000b1e:	4944      	ldr	r1, [pc, #272]	; (8000c30 <Menu+0x2a8>)
  8000b20:	4839      	ldr	r0, [pc, #228]	; (8000c08 <Menu+0x280>)
  8000b22:	f002 fef9 	bl	8003918 <siprintf>
@@ -1307,7 +1307,7 @@ void Menu()
  8000b3c:	4b36      	ldr	r3, [pc, #216]	; (8000c18 <Menu+0x290>)
  8000b3e:	2200      	movs	r2, #0
  8000b40:	601a      	str	r2, [r3, #0]
-						sprintf((char*)TxBuffer,"LED Off\r\n");
+						sprintf((char*)TxBuffer,"LED Off\r\n\r\n");
  8000b42:	493c      	ldr	r1, [pc, #240]	; (8000c34 <Menu+0x2ac>)
  8000b44:	4830      	ldr	r0, [pc, #192]	; (8000c08 <Menu+0x280>)
  8000b46:	f002 fee7 	bl	8003918 <siprintf>
@@ -1346,7 +1346,7 @@ void Menu()
  8000b88:	701a      	strb	r2, [r3, #0]
 			break;
  8000b8a:	e035      	b.n	8000bf8 <Menu+0x270>
-					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+					sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n\r\n",RxBuffer);
  8000b8c:	4a1c      	ldr	r2, [pc, #112]	; (8000c00 <Menu+0x278>)
  8000b8e:	4921      	ldr	r1, [pc, #132]	; (8000c14 <Menu+0x28c>)
  8000b90:	481d      	ldr	r0, [pc, #116]	; (8000c08 <Menu+0x280>)
@@ -1386,7 +1386,7 @@ void Menu()
  8000bd4:	701a      	strb	r2, [r3, #0]
 			break;
  8000bd6:	e00e      	b.n	8000bf6 <Menu+0x26e>
-				sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n",RxBuffer);
+				sprintf((char*)TxBuffer,"There's no function %s from that you called\r\n\r\n",RxBuffer);
  8000bd8:	4a09      	ldr	r2, [pc, #36]	; (8000c00 <Menu+0x278>)
  8000bda:	490e      	ldr	r1, [pc, #56]	; (8000c14 <Menu+0x28c>)
  8000bdc:	480a      	ldr	r0, [pc, #40]	; (8000c08 <Menu+0x280>)
@@ -1407,20 +1407,20 @@ void Menu()
  8000bfa:	bd80      	pop	{r7, pc}
  8000bfc:	200002c8 	.word	0x200002c8
  8000c00:	20000134 	.word	0x20000134
- 8000c04:	08004308 	.word	0x08004308
+ 8000c04:	0800431c 	.word	0x0800431c
  8000c08:	20000138 	.word	0x20000138
  8000c0c:	20000090 	.word	0x20000090
- 8000c10:	080043f4 	.word	0x080043f4
- 8000c14:	080044c8 	.word	0x080044c8
+ 8000c10:	08004424 	.word	0x08004424
+ 8000c14:	08004500 	.word	0x08004500
  8000c18:	20000000 	.word	0x20000000
- 8000c1c:	080044f8 	.word	0x080044f8
+ 8000c1c:	08004530 	.word	0x08004530
  8000c20:	200002cc 	.word	0x200002cc
- 8000c24:	08004518 	.word	0x08004518
- 8000c28:	08004540 	.word	0x08004540
- 8000c2c:	08004568 	.word	0x08004568
- 8000c30:	080045a4 	.word	0x080045a4
- 8000c34:	080045b0 	.word	0x080045b0
- 8000c38:	080045bc 	.word	0x080045bc
+ 8000c24:	08004554 	.word	0x08004554
+ 8000c28:	08004580 	.word	0x08004580
+ 8000c2c:	080045ac 	.word	0x080045ac
+ 8000c30:	080045e8 	.word	0x080045e8
+ 8000c34:	080045f4 	.word	0x080045f4
+ 8000c38:	08004600 	.word	0x08004600
 
 08000c3c <Error_Handler>:
 /**
@@ -2095,7 +2095,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  8000ef8:	20000074 	.word	0x20000074
   ldr r2, =_sidata
- 8000efc:	080046e0 	.word	0x080046e0
+ 8000efc:	08004730 	.word	0x08004730
   ldr r2, =_sbss
  8000f00:	20000074 	.word	0x20000074
   ldr r4, =_ebss
@@ -4038,7 +4038,7 @@ static uint32_t DMA_CalcBaseAndBitshift(DMA_HandleTypeDef *hdma)
  8001914:	4770      	bx	lr
  8001916:	bf00      	nop
  8001918:	aaaaaaab 	.word	0xaaaaaaab
- 800191c:	08004694 	.word	0x08004694
+ 800191c:	080046e4 	.word	0x080046e4
 
 08001920 <DMA_CheckFifoParam>:
   * @param  hdma       pointer to a DMA_HandleTypeDef structure that contains
@@ -6107,7 +6107,7 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
  800248e:	bf00      	nop
  8002490:	40023c00 	.word	0x40023c00
  8002494:	40023800 	.word	0x40023800
- 8002498:	0800467c 	.word	0x0800467c
+ 8002498:	080046cc 	.word	0x080046cc
  800249c:	20000004 	.word	0x20000004
  80024a0:	20000008 	.word	0x20000008
 
@@ -6409,7 +6409,7 @@ uint32_t HAL_RCC_GetPCLK1Freq(void)
  80026e4:	4618      	mov	r0, r3
  80026e6:	bd80      	pop	{r7, pc}
  80026e8:	40023800 	.word	0x40023800
- 80026ec:	0800468c 	.word	0x0800468c
+ 80026ec:	080046dc 	.word	0x080046dc
 
 080026f0 <HAL_RCC_GetPCLK2Freq>:
   * @note   Each time PCLK2 changes, this function must be called to update the
@@ -6435,7 +6435,7 @@ uint32_t HAL_RCC_GetPCLK2Freq(void)
  800270c:	4618      	mov	r0, r3
  800270e:	bd80      	pop	{r7, pc}
  8002710:	40023800 	.word	0x40023800
- 8002714:	0800468c 	.word	0x0800468c
+ 8002714:	080046dc 	.word	0x080046dc
 
 08002718 <HAL_UART_Init>:
   * @param  huart  Pointer to a UART_HandleTypeDef structure that contains
@@ -9153,10 +9153,10 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  80038f2:	4798      	blx	r3
  80038f4:	3601      	adds	r6, #1
  80038f6:	e7f2      	b.n	80038de <__libc_init_array+0x1e>
- 80038f8:	080046d8 	.word	0x080046d8
- 80038fc:	080046d8 	.word	0x080046d8
- 8003900:	080046d8 	.word	0x080046d8
- 8003904:	080046dc 	.word	0x080046dc
+ 80038f8:	08004728 	.word	0x08004728
+ 80038fc:	08004728 	.word	0x08004728
+ 8003900:	08004728 	.word	0x08004728
+ 8003904:	0800472c 	.word	0x0800472c
 
 08003908 <memset>:
  8003908:	4402      	add	r2, r0
@@ -9474,11 +9474,11 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  8003bf4:	f000 f87a 	bl	8003cec <_printf_i>
  8003bf8:	e7eb      	b.n	8003bd2 <_svfiprintf_r+0x1c2>
  8003bfa:	bf00      	nop
- 8003bfc:	0800469c 	.word	0x0800469c
- 8003c00:	080046a6 	.word	0x080046a6
+ 8003bfc:	080046ec 	.word	0x080046ec
+ 8003c00:	080046f6 	.word	0x080046f6
  8003c04:	00000000 	.word	0x00000000
  8003c08:	08003959 	.word	0x08003959
- 8003c0c:	080046a2 	.word	0x080046a2
+ 8003c0c:	080046f2 	.word	0x080046f2
 
 08003c10 <_printf_common>:
  8003c10:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -9814,8 +9814,8 @@ static void UART_SetConfig(UART_HandleTypeDef *huart)
  8003f28:	f104 0619 	add.w	r6, r4, #25
  8003f2c:	e7f5      	b.n	8003f1a <_printf_i+0x22e>
  8003f2e:	bf00      	nop
- 8003f30:	080046ad 	.word	0x080046ad
- 8003f34:	080046be 	.word	0x080046be
+ 8003f30:	080046fd 	.word	0x080046fd
+ 8003f34:	0800470e 	.word	0x0800470e
 
 08003f38 <memcpy>:
  8003f38:	440a      	add	r2, r1
